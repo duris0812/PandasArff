@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Analytics Dashboard - NSL-KDD Dataset Analysis</title>
+    <style>
+        :root {
+            --primary-color: #3a506b;
+            --secondary-color: #5bc0be;
+            --accent-color: #6fffe9;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --danger-color: #F44336;
+            --light-color: #f8f9fa;
+            --dark-color: #1c2541;
+            --gray-light: #e9ecef;
+            --gray-medium: #6c757d;
+            --gray-dark: #343a40;
+            --border-radius: 10px;
+            --box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            line-height: 1.6;
+            color: #2d3748;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--dark-color), #0b132b);
+            color: white;
+            padding: 40px;
+            margin-bottom: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+            font-weight: 300;
+        }
+        
+        /* Navigation Menu */
+        .nav-menu {
+            background: white;
+            padding: 20px;
+            margin-bottom: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            position: sticky;
+            top: 20px;
+            z-index: 1000;
+            border: 1px solid var(--gray-light);
+        }
+        
+        .nav-item {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 2px solid transparent;
+        }
+        
+        .nav-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(91, 192, 190, 0.2);
+            border-color: var(--secondary-color);
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            color: var(--dark-color);
+        }
+        
+        .nav-number {
+            background: rgba(255, 255, 255, 0.2);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .nav-item:hover .nav-number {
+            background: rgba(28, 37, 65, 0.2);
+        }
+        
+        /* Upload Section */
+        .upload-section {
+            background: white;
+            padding: 50px 40px;
+            margin-bottom: 50px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+            border-top: 4px solid var(--secondary-color);
+            position: relative;
+        }
+        
+        .upload-section::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 10%;
+            right: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gray-light), transparent);
+        }
+        
+        .upload-section h2 {
+            color: var(--dark-color);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            max-width: 600px;
+            margin: 30px 0;
+        }
+        
+        .file-upload input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .file-upload-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 30px;
+            border: 3px dashed var(--secondary-color);
+            border-radius: var(--border-radius);
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        
+        .file-upload-label:hover {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.1);
+        }
+        
+        .upload-icon {
+            font-size: 56px;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+        }
+        
+        .upload-text {
+            font-size: 1.2rem;
+            color: var(--gray-dark);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .upload-hint {
+            font-size: 0.95rem;
+            color: var(--gray-medium);
+        }
+        
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            color: var(--dark-color);
+            border: none;
+            padding: 16px 36px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            letter-spacing: 0.3px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(91, 192, 190, 0.25);
+            background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+        }
+        
+        /* Main Topic Sections */
+        .main-topic {
+            background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+            color: white;
+            padding: 30px 35px;
+            margin: 50px 0 35px 0;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .main-topic::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--secondary-color), var(--accent-color));
+        }
+        
+        .main-topic h2 {
+            margin: 0;
+            font-size: 1.9rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .topic-number {
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            color: var(--dark-color);
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 12px rgba(91, 192, 190, 0.3);
+        }
+        
+        /* Subtopic Sections */
+        .subtopic-section {
+            background: white;
+            padding: 35px;
+            margin: 35px 0;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            border-left: 5px solid var(--secondary-color);
+            transition: var(--transition);
+            position: relative;
+        }
+        
+        .subtopic-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .subtopic-title {
+            color: var(--dark-color);
+            border-bottom: 2px solid var(--gray-light);
+            padding-bottom: 18px;
+            margin-bottom: 30px;
+            font-size: 1.6rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .subtopic-icon {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            background: rgba(91, 192, 190, 0.1);
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Data Tables */
+        .dataframe-container {
+            overflow-x: auto;
+            margin: 25px 0;
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            background: white;
+            max-height: 600px;
+            overflow-y: auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .dataframe-container table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        .dataframe-container th {
+            background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+            color: white;
+            padding: 14px 16px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-weight: 600;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .dataframe-container th:last-child {
+            border-right: none;
+        }
+        
+        .dataframe-container td {
+            border: 1px solid var(--gray-light);
+            padding: 12px 16px;
+            text-align: left;
+        }
+        
+        .dataframe-container tbody tr:hover {
+            background-color: rgba(91, 192, 190, 0.05);
+        }
+        
+        .dataframe-container tbody tr:nth-child(even) {
+            background-color: #fafcff;
+        }
+        
+        /* Plots */
+        .plot-container {
+            margin: 35px 0;
+            padding: 30px;
+            background: white;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--gray-light);
+            box-shadow: var(--box-shadow);
+        }
+        
+        .plot-title {
+            font-size: 1.4rem;
+            color: var(--dark-color);
+            margin-bottom: 25px;
+            font-weight: 700;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--gray-light);
+        }
+        
+        .plot-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Info Containers */
+        .info-container {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin: 25px 0;
+            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            white-space: pre;
+            border-left: 5px solid var(--warning-color);
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+            transition: var(--transition);
+            border-top: 5px solid var(--secondary-color);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stat-value {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--dark-color);
+            margin: 15px 0;
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-label {
+            font-size: 1.1rem;
+            color: var(--gray-medium);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-weight: 600;
+        }
+        
+        /* Division Plots Grid */
+        .division-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 25px;
+            margin: 35px 0;
+        }
+        
+        .division-plot {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+            border-top: 5px solid;
+            transition: var(--transition);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .division-plot:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .division-plot h4 {
+            margin: 0 0 20px 0;
+            color: var(--dark-color);
+            font-size: 1.3rem;
+            font-weight: 700;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--gray-light);
+        }
+        
+        .division-plot img {
+            max-height: 300px;
+            object-fit: contain;
+        }
+        
+        /* Metrics Display */
+        .metrics-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin: 35px 0;
+        }
+        
+        .metric-item {
+            background: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: var(--box-shadow);
+            border-top: 5px solid;
+            transition: var(--transition);
+        }
+        
+        .metric-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .metric-value {
+            font-size: 2.4rem;
+            font-weight: 800;
+            margin: 15px 0;
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .metric-label {
+            font-size: 1.1rem;
+            color: var(--gray-medium);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* List of Attributes */
+        .attributes-list {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            margin: 30px 0;
+            border-left: 5px solid var(--secondary-color);
+        }
+        
+        .attributes-title {
+            font-size: 1.3rem;
+            color: var(--dark-color);
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        .attributes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .attribute-item {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--gray-light);
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 13px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .attribute-item:hover {
+            background-color: rgba(91, 192, 190, 0.05);
+            border-color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+        
+        .attribute-number {
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            color: var(--dark-color);
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+        
+        /* Alerts */
+        .alert {
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin: 25px 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            border-left: 5px solid;
+        }
+        
+        .alert-icon {
+            font-size: 1.6rem;
+            flex-shrink: 0;
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #ffeaea 0%, #ffd6d6 100%);
+            color: #c0392b;
+            border-left-color: var(--danger-color);
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #e8f6ef 0%, #d5f4e6 100%);
+            color: #27ae60;
+            border-left-color: var(--success-color);
+        }
+        
+        .alert-info {
+            background: linear-gradient(135deg, #e8f4fc 0%, #d1ecf1 100%);
+            color: #2980b9;
+            border-left-color: var(--secondary-color);
+        }
+        
+        /* Scroll to Top Button */
+        .scroll-top {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            color: var(--dark-color);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            font-size: 24px;
+            display: none;
+            z-index: 1000;
+            transition: var(--transition);
+            box-shadow: 0 8px 25px rgba(91, 192, 190, 0.3);
+        }
+        
+        .scroll-top:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 12px 30px rgba(91, 192, 190, 0.4);
+        }
+        
+        /* Navigation Buttons */
+        .nav-buttons {
+            text-align: center;
+            margin: 60px 0;
+            padding: 50px;
+            background: linear-gradient(135deg, var(--dark-color), #0b132b);
+            border-radius: var(--border-radius);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-buttons::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+        }
+        
+        .nav-buttons h3 {
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .division-grid {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto auto;
+            }
+            
+            .attributes-grid {
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .header {
+                padding: 35px 30px;
+            }
+            
+            .header h1 {
+                font-size: 2.4rem;
+            }
+            
+            .nav-menu {
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+            }
+            
+            .nav-item {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+                margin-bottom: 30px;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .upload-section {
+                padding: 40px 25px;
+            }
+            
+            .subtopic-section {
+                padding: 25px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .division-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto auto;
+                gap: 20px;
+            }
+            
+            .main-topic h2 {
+                font-size: 1.6rem;
+            }
+            
+            .topic-number {
+                width: 45px;
+                height: 45px;
+                font-size: 1.2rem;
+            }
+            
+            .subtopic-title {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .header h1 {
+                font-size: 1.9rem;
+            }
+            
+            .btn {
+                padding: 14px 28px;
+                width: 100%;
+                margin: 8px 0;
+            }
+            
+            .metric-value {
+                font-size: 2rem;
+            }
+            
+            .attributes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .division-plot h4 {
+                font-size: 1.2rem;
+            }
+            
+            .scroll-top {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+        
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in {
+            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Table Info */
+        .table-info {
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid var(--gray-light);
+            border-top: none;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            font-size: 14px;
+            color: var(--gray-medium);
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+            height: 10px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+            border-radius: 10px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+        }
+        
+        /* Selection */
+        ::selection {
+            background-color: rgba(91, 192, 190, 0.3);
+            color: var(--dark-color);
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header section -->
+    <div class="header">
+        <h1>📈 Analytics Dashboard</h1>
+        <p>Análisis completo del dataset NSL-KDD con visualización avanzada, procesamiento de datos y evaluación de modelos de machine learning</p>
+    </div>
+
+    <!-- Navigation menu -->
+    <div class="nav-menu fade-in" id="navMenu">
+        <a href="#tema1" class="nav-item">
+            <span class="nav-number">1</span>
+            Visualización del Dataset
+        </a>
+        <a href="#tema2" class="nav-item">
+            <span class="nav-number">2</span>
+            División del Dataset
+        </a>
+        <a href="#tema3" class="nav-item">
+            <span class="nav-number">3</span>
+            Preparación del Dataset
+        </a>
+        <a href="#tema4" class="nav-item">
+            <span class="nav-number">4</span>
+            Transformadores y Pipelines
+        </a>
+        <a href="#tema5" class="nav-item">
+            <span class="nav-number">5</span>
+            Evaluación del Modelo
+        </a>
+    </div>
+
+    <!-- Dataset upload section -->
+    <div class="upload-section fade-in">
+        <h2>Cargar Dataset</h2>
+        <p>Suba un archivo ARFF para comenzar el análisis. El sistema procesará automáticamente todos los temas del análisis.</p>
+        
+        <form method="POST" enctype="multipart/form-data" id="uploadForm">
+            {% csrf_token %}
+            <div class="file-upload">
+                <input type="file" name="dataset" accept=".arff" required id="fileInput">
+                <label for="fileInput" class="file-upload-label">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Haga clic o arrastre un archivo ARFF aquí</div>
+                    <div class="upload-hint">Formatos aceptados: .arff (máx. 100MB)</div>
+                </label>
+            </div>
+            <button type="submit" class="btn" id="submitBtn">
+                <span id="btnText">🚀 Iniciar análisis completo</span>
+                <span id="btnSpinner" class="spinner" style="display: none;"></span>
+            </button>
+        </form>
+        
+        {% if error %}
+        <div class="alert alert-danger">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+                <strong>Error:</strong> {{ error }}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if dataset_loaded %}
+        <div class="alert alert-success">
+            <div class="alert-icon">✅</div>
+            <div class="alert-content">
+                <strong>Dataset cargado exitosamente:</strong> {{ df_shape.0 }} filas × {{ df_shape.1 }} columnas
+                {% if optimized and total_rows > 1000 %}
+                <br><small>Para optimización, se muestran muestras representativas en tablas grandes.</small>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if dataset_loaded %}
+    
+    <!-- Tema 1: Visualización del dataset -->
+    <div class="main-topic fade-in" id="tema1">
+        <div class="topic-number">1</div>
+        <h2>VISUALIZACIÓN DEL DATASET</h2>
+    </div>
+
+    <!-- Dataset overview -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">📊</span>
+            Vista General del Dataset
+        </h3>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ df_shape.0 }}</div>
+                <div class="stat-label">Filas Totales</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ df_shape.1 }}</div>
+                <div class="stat-label">Columnas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ atributos_numericos|length }}</div>
+                <div class="stat-label">Atributos Numéricos</div>
+            </div>
+        </div>
+        
+        <div class="dataframe-container">
+            {{ df_completo|safe }}
+        </div>
+    </div>
+
+    <!-- Dataset information -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">📋</span>
+            Información del Dataset
+        </h3>
+        <div class="info-container">
+            {{ df_info|safe }}
+        </div>
+    </div>
+
+    <!-- Statistical summary -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">📈</span>
+            Resumen Estadístico
+        </h3>
+        <div class="dataframe-container">
+            {{ df_describe|safe }}
+        </div>
+    </div>
+
+    <!-- Protocol type distribution -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">🔍</span>
+            Distribución de Protocol Type
+        </h3>
+        
+        {% if protocol_type_values %}
+        <div class="stats-grid" style="margin-bottom: 30px;">
+            {% for value, count in protocol_type_values.items %}
+            <div class="stat-card">
+                <div class="stat-value">{{ count }}</div>
+                <div class="stat-label">{{ value }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% if protocol_type_histogram %}
+        <div class="plot-container">
+            <div class="plot-title">Distribución de Protocol Type</div>
+            <img src="data:image/png;base64,{{ protocol_type_histogram }}" alt="Histograma de protocol_type">
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Numerical attributes distribution -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">📊</span>
+            Distribución de Atributos Numéricos
+        </h3>
+        
+        {% if histogramas_cuadricula %}
+        <div class="plot-container">
+            <div class="plot-title">Histogramas de Atributos Numéricos</div>
+            <img src="data:image/png;base64,{{ histogramas_cuadricula }}" alt="Cuadrícula de histogramas">
+        </div>
+        {% endif %}
+        
+        <!-- Lista de atributos numéricos -->
+        {% if atributos_numericos %}
+        <div class="attributes-list">
+            <div class="attributes-title">Lista Completa de Atributos Numéricos Analizados</div>
+            <div class="attributes-grid">
+                {% for atributo in atributos_numericos %}
+                <div class="attribute-item">
+                    <div class="attribute-number">{{ forloop.counter }}</div>
+                    <div class="attribute-name">{{ atributo }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Correlation analysis -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">📐</span>
+            Análisis de Correlación
+        </h3>
+        
+        <div class="dataframe-container" style="margin-bottom: 30px;">
+            {{ correlation_dataframe|safe }}
+        </div>
+        
+        {% if correlation_matrix_plot %}
+        <div class="plot-container">
+            <div class="plot-title">Matriz de Correlación</div>
+            <img src="data:image/png;base64,{{ correlation_matrix_plot }}" alt="Matriz de correlación">
+        </div>
+        {% endif %}
+        
+        {% if scatter_matrix_plot %}
+        <div class="plot-container">
+            <div class="plot-title">Scatter Matrix - Todos los puntos del dataset</div>
+            <img src="data:image/png;base64,{{ scatter_matrix_plot }}" alt="Scatter matrix">
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Divider -->
+    <div style="height: 2px; background: linear-gradient(to right, transparent, var(--secondary-color), transparent); margin: 60px 0;"></div>
+    
+    <!-- Tema 2: División del dataset -->
+    <div class="main-topic fade-in" id="tema2">
+        <div class="topic-number">2</div>
+        <h2>DIVISIÓN DEL DATASET</h2>
+    </div>
+    
+    {% if division_stats %}
+    <!-- Split statistics -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">🔀</span>
+            Estadísticas de División
+        </h3>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ division_stats.train_percent }}%</div>
+                <div class="stat-label">Train Set</div>
+                <div style="color: var(--gray-medium); font-size: 0.9rem; margin-top: 10px;">
+                    {{ division_stats.train_rows }} filas
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ division_stats.val_percent }}%</div>
+                <div class="stat-label">Validation Set</div>
+                <div style="color: var(--gray-medium); font-size: 0.9rem; margin-top: 10px;">
+                    {{ division_stats.val_rows }} filas
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ division_stats.test_percent }}%</div>
+                <div class="stat-label">Test Set</div>
+                <div style="color: var(--gray-medium); font-size: 0.9rem; margin-top: 10px;">
+                    {{ division_stats.test_rows }} filas
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ division_stats.total_rows }}</div>
+                <div class="stat-label">Total Filas</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Split visualizations -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">📈</span>
+            Comparación de Distribuciones
+        </h3>
+        
+        <div class="division-grid">
+            <div class="division-plot" style="border-top-color: #2c3e50;">
+                <h4>Dataset Completo</h4>
+                <img src="data:image/png;base64,{{ division_plot_full }}" alt="Dataset completo">
+            </div>
+            
+            <div class="division-plot" style="border-top-color: #27ae60;">
+                <h4>Train Set (60%)</h4>
+                <img src="data:image/png;base64,{{ division_plot_train }}" alt="Train set">
+            </div>
+            
+            <div class="division-plot" style="border-top-color: #f39c12;">
+                <h4>Validation Set (20%)</h4>
+                <img src="data:image/png;base64,{{ division_plot_val }}" alt="Validation set">
+            </div>
+            
+            <div class="division-plot" style="border-top-color: #e74c3c;">
+                <h4>Test Set (20%)</h4>
+                <img src="data:image/png;base64,{{ division_plot_test }}" alt="Test set">
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Divider -->
+    <div style="height: 2px; background: linear-gradient(to right, transparent, var(--secondary-color), transparent); margin: 60px 0;"></div>
+    
+    <!-- Tema 3: Preparación del dataset -->
+    <div class="main-topic fade-in" id="tema3">
+        <div class="topic-number">3</div>
+        <h2>PREPARACIÓN DEL DATASET</h2>
+    </div>
+    
+    <!-- Features and labels separation -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">🎯</span>
+            Separación de Características y Etiquetas
+        </h3>
+        <div class="info-container">
+            {{ x_train_info|safe }}
+        </div>
+    </div>
+    
+    <!-- Missing values -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">🔍</span>
+            Valores Faltantes
+        </h3>
+        
+        {% if columns_with_nan %}
+        <div class="alert alert-danger">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+                <strong>Columnas con valores nulos:</strong>
+                {% for col in columns_with_nan %}
+                <span style="background: rgba(255, 152, 0, 0.1); color: var(--warning-color); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin: 0 5px;">{{ col }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if filas_con_nan %}
+        <div class="dataframe-container">
+            <div class="table-info">Filas con valores nulos</div>
+            {{ filas_con_nan|safe }}
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Categorical encoding -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">🔄</span>
+            Transformación de Variables Categóricas
+        </h3>
+        
+        {% if factorized_examples %}
+        <div class="dataframe-container">
+            <div class="table-info">Factorize (Pandas)</div>
+            {{ factorized_examples|safe }}
+        </div>
+        {% endif %}
+        
+        {% if encoding_comparison %}
+        <div class="dataframe-container">
+            <div class="table-info">Comparación de Métodos de Encoding</div>
+            {{ encoding_comparison|safe }}
+        </div>
+        {% endif %}
+        
+        {% if onehot_structure %}
+        <div class="dataframe-container">
+            <div class="table-info">OneHotEncoder</div>
+            {{ onehot_structure|safe }}
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Feature scaling -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">📏</span>
+            Escalado de Características
+        </h3>
+        
+        {% if scaling_comparison %}
+        <div class="dataframe-container">
+            <div class="table-info">Comparación Antes/Después del Escalado</div>
+            {{ scaling_comparison|safe }}
+        </div>
+        {% endif %}
+        
+        {% if scaling_stats %}
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ scaling_stats.src_bytes_mean_original }}</div>
+                <div class="stat-label">src_bytes (original)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ scaling_stats.src_bytes_mean_scaled }}</div>
+                <div class="stat-label">src_bytes (escalado)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ scaling_stats.dst_bytes_mean_original }}</div>
+                <div class="stat-label">dst_bytes (original)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ scaling_stats.dst_bytes_mean_scaled }}</div>
+                <div class="stat-label">dst_bytes (escalado)</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Divider -->
+    <div style="height: 2px; background: linear-gradient(to right, transparent, var(--secondary-color), transparent); margin: 60px 0;"></div>
+    
+    <!-- Tema 4: Transformadores y pipelines -->
+    <div class="main-topic fade-in" id="tema4">
+        <div class="topic-number">4</div>
+        <h2>TRANSFORMADORES Y PIPELINES</h2>
+    </div>
+    
+    <!-- Delete NaN rows transformer -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">🗑️</span>
+            Transformador DeleteNanRows
+        </h3>
+        
+        {% if delete_nan_shape %}
+        <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="stat-card">
+                <div class="stat-value">{{ delete_nan_shape.0 }}</div>
+                <div class="stat-label">Filas Restantes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ delete_nan_shape.1 }}</div>
+                <div class="stat-label">Columnas</div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if delete_nan_sample %}
+        <div class="dataframe-container">
+            <div class="table-info">Dataset después de eliminar filas con NaN</div>
+            {{ delete_nan_sample|safe }}
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Custom scaler -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">📏</span>
+            Transformador CustomScaler
+        </h3>
+        
+        {% if custom_scaler_sample %}
+        <div class="dataframe-container">
+            <div class="table-info">Columnas src_bytes y dst_bytes escaladas</div>
+            {{ custom_scaler_sample|safe }}
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Complete pipeline -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">⚙️</span>
+            Pipeline Completo (ColumnTransformer)
+        </h3>
+        
+        {% if full_pipeline_shape %}
+        <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="stat-card">
+                <div class="stat-value">{{ full_pipeline_shape.0 }}</div>
+                <div class="stat-label">Filas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ full_pipeline_shape.1 }}</div>
+                <div class="stat-label">Columnas</div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if full_pipeline_sample %}
+        <div class="dataframe-container">
+            <div class="table-info">Dataset final preparado para entrenamiento</div>
+            {{ full_pipeline_sample|safe }}
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Divider -->
+    <div style="height: 2px; background: linear-gradient(to right, transparent, var(--secondary-color), transparent); margin: 60px 0;"></div>
+    
+    <!-- Tema 5: Evaluación del modelo -->
+    <div class="main-topic fade-in" id="tema5">
+        <div class="topic-number">5</div>
+        <h2>EVALUACIÓN DEL MODELO</h2>
+    </div>
+    
+    <!-- Model metrics -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">📊</span>
+            Métricas del Modelo
+        </h3>
+        
+        {% if model_metrics %}
+        <div class="metrics-display">
+            <div class="metric-item" style="border-top-color: #27ae60;">
+                <div class="metric-value">{{ model_metrics.accuracy }}%</div>
+                <div class="metric-label">Accuracy</div>
+            </div>
+            
+            <div class="metric-item" style="border-top-color: #3498db;">
+                <div class="metric-value">{{ model_metrics.precision }}%</div>
+                <div class="metric-label">Precision</div>
+            </div>
+            
+            <div class="metric-item" style="border-top-color: #9b59b6;">
+                <div class="metric-value">{{ model_metrics.recall }}%</div>
+                <div class="metric-label">Recall</div>
+            </div>
+            
+            <div class="metric-item" style="border-top-color: #e74c3c;">
+                <div class="metric-value">{{ model_metrics.f1 }}%</div>
+                <div class="metric-label">F1-Score</div>
+            </div>
+        </div>
+        
+        <!-- Prediction statistics -->
+        {% if prediction_stats %}
+        <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 30px;">
+            <div class="stat-card">
+                <div class="stat-value">{{ prediction_stats.total_predictions }}</div>
+                <div class="stat-label">Total Predicciones</div>
+            </div>
+            <div class="stat-card" style="border-top-color: #27ae60;">
+                <div class="stat-value">{{ prediction_stats.correct_predictions }}</div>
+                <div class="stat-label">Correctas</div>
+            </div>
+            <div class="stat-card" style="border-top-color: #e74c3c;">
+                <div class="stat-value">{{ prediction_stats.incorrect_predictions }}</div>
+                <div class="stat-label">Incorrectas</div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if metrics_info %}
+        <div class="alert alert-info" style="margin-top: 30px;">
+            <div class="alert-icon">ℹ️</div>
+            <div class="alert-content">
+                {{ metrics_info }}
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+    
+    <!-- Predictions comparison -->
+    <div class="subtopic-section fade-in">
+        <h3 class="subtopic-title">
+            <span class="subtopic-icon">🔍</span>
+            Comparación de Predicciones
+        </h3>
+        
+        {% if comparison_predictions %}
+        <div class="dataframe-container">
+            <div class="table-info">Comparación entre valores reales y predicciones</div>
+            {{ comparison_predictions|safe }}
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Navigation buttons -->
+    <div class="nav-buttons fade-in">
+        <h3>Análisis Completado</h3>
+        <p>El análisis del dataset se ha procesado exitosamente. Puede cargar un nuevo archivo para realizar otro análisis.</p>
+        <button onclick="location.reload()" class="btn" style="background: white; color: var(--dark-color); font-weight: bold; border: 2px solid white;">
+            🔄 Procesar Nuevo Dataset
+        </button>
+    </div>
+    
+    <button class="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Volver arriba">↑</button>
+    {% endif %}
+    
+    <script>
+        // Scroll to top button functionality
+        window.addEventListener('scroll', function() {
+            const scrollBtn = document.querySelector('.scroll-top');
+            if (window.scrollY > 300) {
+                scrollBtn.style.display = 'block';
+            } else {
+                scrollBtn.style.display = 'none';
+            }
+        });
+        
+        // Form submission loading state
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            
+            if (submitBtn) {
+                btnText.textContent = 'Procesando...';
+                btnSpinner.style.display = 'inline-block';
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.8';
+                submitBtn.style.cursor = 'not-allowed';
+                
+                // Loading message
+                const loadingMsg = document.createElement('div');
+                loadingMsg.className = 'alert alert-info';
+                loadingMsg.innerHTML = `
+                    <div class="alert-icon">⏳</div>
+                    <div class="alert-content">
+                        <strong>Procesando dataset...</strong> Esto puede tardar unos momentos para datasets grandes.
+                        <div class="progress-container" style="margin-top: 15px;">
+                            <div class="progress-bar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                `;
+                
+                const uploadSection = document.querySelector('.upload-section');
+                if (uploadSection) {
+                    uploadSection.appendChild(loadingMsg);
+                    
+                    // Progress bar animation
+                    let progress = 0;
+                    const progressBar = loadingMsg.querySelector('.progress-bar');
+                    const interval = setInterval(() => {
+                        if (progress < 90) {
+                            progress += 10;
+                            progressBar.style.width = progress + '%';
+                        }
+                    }, 500);
+                }
+            }
+        });
+        
+        // Auto-scroll to top when loading with data
+        window.addEventListener('load', function() {
+            if (window.location.hash === '' && document.querySelector('.alert-success')) {
+                setTimeout(() => {
+                    window.scrollTo({top: 0, behavior: 'smooth'});
+                }, 100);
+            }
+            
+            // Section animations
+            const sections = document.querySelectorAll('.fade-in');
+            sections.forEach((section, index) => {
+                setTimeout(() => {
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+        
+        // Table performance improvements
+        document.addEventListener('DOMContentLoaded', function() {
+            const tables = document.querySelectorAll('.dataframe-container table');
+            tables.forEach(table => {
+                // Zebra striping
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach((row, index) => {
+                    if (index % 2 === 0) {
+                        row.style.backgroundColor = '#fafcff';
+                    }
+                    
+                    // Hover effect
+                    row.addEventListener('mouseenter', function() {
+                        this.style.backgroundColor = 'rgba(91, 192, 190, 0.08)';
+                        this.style.transition = 'background-color 0.2s ease';
+                    });
+                    row.addEventListener('mouseleave', function() {
+                        this.style.backgroundColor = index % 2 === 0 ? '#fafcff' : 'transparent';
+                    });
+                });
+            });
+        });
+        
+        // File input change handler
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const label = document.querySelector('.file-upload-label');
+                const uploadIcon = label.querySelector('.upload-icon');
+                const uploadText = label.querySelector('.upload-text');
+                
+                uploadIcon.textContent = '📊';
+                uploadText.textContent = `Archivo seleccionado: ${file.name}`;
+                label.style.borderColor = 'var(--success-color)';
+                label.style.background = 'linear-gradient(135deg, #e8f6ef 0%, #d5f4e6 100%)';
+            }
+        });
+        
+        // Smooth scrolling for navigation menu
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId !== '#') {
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 100,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
